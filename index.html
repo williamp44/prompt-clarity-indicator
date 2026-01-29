@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Clarity Indicator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-weight: 300;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .hint {
+      text-align: center;
+      color: #4facfe;
+      margin-bottom: 30px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    /* ===== PRIMARY SECTION: Input + Blurry Preview ===== */
+    .primary-section {
+      background: rgba(255,255,255,0.03);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .primary-section h2 {
+      font-size: 0.85rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Input area */
+    .input-area {
+      margin-bottom: 24px;
+    }
+
+    .prompt-label {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .prompt-input {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 1.1rem;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .prompt-input:focus {
+      border-color: rgba(100,200,255,0.5);
+    }
+
+    .prompt-input::placeholder {
+      color: #555;
+    }
+
+    /* Inline examples under input */
+    .examples-inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .examples-label {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .example-chip {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #aaa;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .example-chip:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(79, 172, 254, 0.3);
+      color: #fff;
+    }
+
+    .chip-hint {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(79, 172, 254, 0.2);
+      color: #4facfe;
+    }
+
+    .example-chip:nth-child(2) .chip-hint {
+      background: rgba(245, 87, 108, 0.2);
+      color: #f5576c;
+    }
+
+    .example-chip:nth-child(3) .chip-hint {
+      background: rgba(56, 239, 125, 0.2);
+      color: #38ef7d;
+    }
+
+    .example-chip:nth-child(4) .chip-hint {
+      background: rgba(255, 200, 100, 0.2);
+      color: #ffc864;
+    }
+
+    /* Main preview grid */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Blurry preview - PRIMARY */
+    .blur-preview-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .blur-preview-card h3 {
+      font-size: 0.9rem;
+      color: #4facfe;
+      margin-bottom: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .blur-preview-card h3::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #4facfe;
+      border-radius: 50%;
+    }
+
+    .clarity-badge-header {
+      margin-left: auto;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(79, 172, 254, 0.2);
+      color: #4facfe;
+      transition: all 0.3s;
+    }
+
+    .clarity-badge-header.high {
+      background: rgba(56, 239, 125, 0.2);
+      color: #38ef7d;
+    }
+
+    .blur-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 140px;
+      color: #333;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      transition: filter 0.5s ease;
+      position: relative;
+    }
+
+    .blur-content h4 {
+      margin-bottom: 10px;
+      color: #111;
+      font-size: 1.1rem;
+    }
+
+    .clarity-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(79, 172, 254, 0.2);
+      color: #4facfe;
+      transition: all 0.3s;
+    }
+
+    .clarity-badge.high {
+      background: rgba(56, 239, 125, 0.2);
+      color: #38ef7d;
+    }
+
+    /* Components checklist */
+    .components-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .components-card h3 {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .component-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    .component-item.resolved {
+      opacity: 0.5;
+    }
+
+    .component-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .component-icon.missing {
+      background: rgba(245, 87, 108, 0.2);
+      color: #f5576c;
+    }
+
+    .component-icon.found {
+      background: rgba(56, 239, 125, 0.2);
+      color: #38ef7d;
+    }
+
+    .suggestions {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .suggestion-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      background: rgba(79, 172, 254, 0.15);
+      border: 1px solid rgba(79, 172, 254, 0.25);
+      border-radius: 20px;
+      color: #4facfe;
+      font-size: 0.8rem;
+      margin: 4px 4px 4px 0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggestion-btn:hover {
+      background: rgba(79, 172, 254, 0.25);
+    }
+
+    /* ===== ALTERNATIVE VISUALIZATIONS SECTION ===== */
+    .alternatives-section {
+      margin-bottom: 30px;
+    }
+
+    .alternatives-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .alternatives-header h2 {
+      font-size: 0.85rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      color: #666;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .mode-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #aaa;
+    }
+
+    .mode-btn.active {
+      background: rgba(79, 172, 254, 0.2);
+      border-color: rgba(79, 172, 254, 0.4);
+      color: #4facfe;
+    }
+
+    .mode-btn.active[data-mode="underwater"] {
+      background: rgba(0, 200, 200, 0.2);
+      border-color: rgba(0, 200, 200, 0.4);
+      color: #00c8c8;
+    }
+
+    .mode-btn.active[data-mode="target"] {
+      background: rgba(255, 100, 100, 0.2);
+      border-color: rgba(255, 100, 100, 0.4);
+      color: #ff6464;
+    }
+
+    .mode-btn.active[data-mode="explore"] {
+      background: rgba(200, 150, 100, 0.2);
+      border-color: rgba(200, 150, 100, 0.4);
+      color: #c89664;
+    }
+
+    .mode-icon {
+      font-size: 0.9rem;
+    }
+
+    /* Visualization panel */
+    .viz-panel {
+      background: linear-gradient(180deg, #1a1a28 0%, #12121a 100%);
+      border-radius: 16px;
+      padding: 20px;
+      min-height: 180px;
+      border: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+    }
+
+    .viz-description {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #555;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    /* Radio visualization */
+    .radio-viz {
+      display: none;
+    }
+
+    .radio-viz.active {
+      display: block;
+    }
+
+    .radio-inner {
+      background: linear-gradient(180deg, #0a0a12 0%, #151520 100%);
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #2a2a3a;
+    }
+
+    .frequency-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .freq-number {
+      font-family: 'Courier New', monospace;
+      font-size: 2.5rem;
+      color: #4facfe;
+      text-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
+    }
+
+    .freq-label {
+      font-size: 0.7rem;
+      color: #555;
+      text-transform: uppercase;
+    }
+
+    .signal-bars {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 30px;
+    }
+
+    .signal-bar {
+      width: 6px;
+      background: #2a2a3a;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    .signal-bar.active {
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+      box-shadow: 0 0 8px rgba(79, 172, 254, 0.4);
+    }
+
+    .signal-bar:nth-child(1) { height: 6px; }
+    .signal-bar:nth-child(2) { height: 12px; }
+    .signal-bar:nth-child(3) { height: 18px; }
+    .signal-bar:nth-child(4) { height: 24px; }
+    .signal-bar:nth-child(5) { height: 30px; }
+
+    .waveform-container {
+      height: 50px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 2px;
+      padding: 0 8px;
+    }
+
+    .wave-bar {
+      width: 2px;
+      background: #4facfe;
+      border-radius: 1px;
+    }
+
+    .static-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+      transition: opacity 0.5s;
+      pointer-events: none;
+    }
+
+    /* Underwater visualization */
+    .underwater-viz {
+      display: none;
+    }
+
+    .underwater-viz.active {
+      display: block;
+    }
+
+    .underwater-inner {
+      background: linear-gradient(180deg, #051520 0%, #0a2530 100%);
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #1a4a5a;
+      position: relative;
+      overflow: hidden;
+      min-height: 120px;
+    }
+
+    .caustics {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(0, 200, 200, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0, 150, 200, 0.1) 0%, transparent 50%);
+      animation: caustics 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes caustics {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .depth-display {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .depth-number {
+      font-family: 'Courier New', monospace;
+      font-size: 3rem;
+      color: #00c8c8;
+      text-shadow: 0 0 20px rgba(0, 200, 200, 0.4);
+    }
+
+    .depth-label {
+      font-size: 0.75rem;
+      color: #4a8a8a;
+      text-transform: uppercase;
+    }
+
+    .water-level {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(180deg, rgba(0,100,150,0.2) 0%, rgba(0,50,100,0.5) 100%);
+      transition: height 0.5s ease;
+      pointer-events: none;
+    }
+
+    /* Target visualization */
+    .target-viz {
+      display: none;
+    }
+
+    .target-viz.active {
+      display: block;
+    }
+
+    .target-inner {
+      background: #000;
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #333;
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .reticle {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .reticle-ring {
+      position: absolute;
+      border: 2px solid #ff6464;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+
+    .reticle-ring.outer { top: 0; left: 0; right: 0; bottom: 0; opacity: 0.3; }
+    .reticle-ring.middle { top: 17px; left: 17px; right: 17px; bottom: 17px; opacity: 0.5; }
+    .reticle-ring.inner { top: 34px; left: 34px; right: 34px; bottom: 34px; opacity: 0.7; }
+
+    .reticle-ring.locked {
+      border-color: #38ef7d;
+      box-shadow: 0 0 15px rgba(56, 239, 125, 0.4);
+    }
+
+    .reticle-crosshair {
+      position: absolute;
+      background: #ff6464;
+      transition: all 0.3s;
+    }
+
+    .reticle-crosshair.horizontal {
+      top: 50%; left: 8px; right: 8px; height: 1px;
+      transform: translateY(-50%);
+    }
+
+    .reticle-crosshair.vertical {
+      left: 50%; top: 8px; bottom: 8px; width: 1px;
+      transform: translateX(-50%);
+    }
+
+    .reticle-crosshair.locked {
+      background: #38ef7d;
+    }
+
+    .reticle-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff6464;
+      transition: all 0.3s;
+    }
+
+    .reticle-center.locked {
+      background: #38ef7d;
+      box-shadow: 0 0 15px rgba(56, 239, 125, 0.6);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    .reticle.searching {
+      animation: search 2s ease-in-out infinite;
+    }
+
+    @keyframes search {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(3px, -3px); }
+      50% { transform: translate(-3px, 3px); }
+      75% { transform: translate(3px, 3px); }
+    }
+
+    .scanning-text {
+      position: absolute;
+      top: 12px; left: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      color: #ff6464;
+      animation: blink 1s step-end infinite;
+    }
+
+    .scanning-text.locked {
+      color: #38ef7d;
+      animation: none;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .target-confidence {
+      position: absolute;
+      bottom: 12px; right: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #ff6464;
+      transition: color 0.3s;
+    }
+
+    .target-confidence.locked {
+      color: #38ef7d;
+    }
+
+    /* Explore visualization */
+    .explore-viz {
+      display: none;
+    }
+
+    .explore-viz.active {
+      display: block;
+    }
+
+    .explore-inner {
+      background: linear-gradient(180deg, #0d1a1a 0%, #0a1515 100%);
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid #2a3a3a;
+    }
+
+    .game-map {
+      position: relative;
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #1a2a2a 0%, #0f1a1a 100%);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #3a4a4a;
+    }
+
+    .map-region {
+      position: absolute;
+      border-radius: 6px;
+      overflow: hidden;
+      transition: all 0.6s ease;
+    }
+
+    .map-region[data-key="topic"] {
+      top: 6px; left: 6px; width: 35%; height: 45%;
+      --terrain: linear-gradient(135deg, #2a5a3a 0%, #1a4a2a 100%);
+    }
+
+    .map-region[data-key="audience"] {
+      top: 6px; right: 6px; width: 30%; height: 40%;
+      --terrain: linear-gradient(135deg, #4a3a2a 0%, #3a2a1a 100%);
+    }
+
+    .map-region[data-key="format"] {
+      bottom: 6px; left: 6px; width: 28%; height: 42%;
+      --terrain: linear-gradient(135deg, #2a3a5a 0%, #1a2a4a 100%);
+    }
+
+    .map-region[data-key="tone"] {
+      bottom: 6px; left: 35%; width: 30%; height: 38%;
+      --terrain: linear-gradient(135deg, #5a3a4a 0%, #4a2a3a 100%);
+    }
+
+    .map-region[data-key="goal"] {
+      bottom: 6px; right: 6px; width: 28%; height: 45%;
+      --terrain: linear-gradient(135deg, #4a4a2a 0%, #3a3a1a 100%);
+    }
+
+    .region-terrain {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--terrain);
+      z-index: 1;
+    }
+
+    .region-fog {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse at 30% 30%, rgba(80, 80, 90, 0.9) 0%, transparent 70%),
+        radial-gradient(ellipse at 70% 60%, rgba(70, 70, 80, 0.9) 0%, transparent 70%),
+        linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+      transition: opacity 0.8s ease;
+      z-index: 2;
+    }
+
+    .map-region.revealed .region-fog {
+      opacity: 0;
+    }
+
+    .region-content {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+    }
+
+    .region-icon {
+      font-size: 1.2rem;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.5s ease 0.2s;
+    }
+
+    .map-region.revealed .region-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .region-label {
+      font-size: 0.55rem;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      margin-top: 2px;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .map-region.revealed .region-label {
+      opacity: 1;
+    }
+
+    .region-unknown {
+      font-size: 1.4rem;
+      color: rgba(100, 100, 110, 0.5);
+    }
+
+    .map-region.revealed .region-unknown {
+      opacity: 0;
+    }
+
+    .exploration-bar {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .exploration-bar span {
+      font-size: 0.7rem;
+      color: #666;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 6px;
+      background: #1a2a2a;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3a5a4a 0%, #5a8a6a 100%);
+      transition: width 0.5s ease;
+    }
+
+    /* Status and Audio */
+    .viz-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .status-text {
+      font-size: 0.85rem;
+      color: #666;
+      transition: color 0.3s;
+    }
+
+    .status-text.clear {
+      color: #4facfe;
+    }
+
+    .status-text.locked {
+      color: #38ef7d;
+    }
+
+    .audio-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .audio-toggle:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .audio-toggle.active {
+      background: rgba(79, 172, 254, 0.15);
+      border-color: rgba(79, 172, 254, 0.3);
+      color: #4facfe;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Prompt Clarity Indicator</h1>
+    <p class="subtitle">See how clearly AI understands your intent</p>
+    <p class="hint">Type a vague prompt, then add details — watch the blur clear</p>
+
+    <!-- ===== PRIMARY SECTION ===== -->
+    <div class="primary-section">
+      <h2>Your Prompt</h2>
+
+      <div class="input-area">
+        <input
+          type="text"
+          class="prompt-input"
+          id="promptInput"
+          placeholder="Type your idea... e.g., 'Build a game'"
+          autocomplete="off"
+        >
+      </div>
+
+      <!-- Examples - right under input for easy testing -->
+      <div class="examples-inline">
+        <span class="examples-label">Try:</span>
+        <button class="example-chip" data-prompt="Build a game">
+          "Build a game" <span class="chip-hint">vague</span>
+        </button>
+        <button class="example-chip" data-prompt="Build a puzzle game for mobile with colorful graphics targeting casual players, goal is addictive sessions">
+          "Build a puzzle game..." <span class="chip-hint">clear</span>
+        </button>
+        <button class="example-chip" data-prompt="Build a 2D platformer game for kids">
+          "2D platformer for kids" <span class="chip-hint">partial</span>
+        </button>
+      </div>
+
+      <div class="preview-grid">
+        <!-- Blurry Preview - PRIMARY CONCEPT -->
+        <div class="blur-preview-card">
+          <h3>AI Understanding <span class="clarity-badge-header" id="clarityBadgeHeader">0% clarity</span></h3>
+          <div class="blur-content" id="blurContent">
+            <span class="clarity-badge" id="clarityBadge">0% clarity</span>
+            <h4>Waiting...</h4>
+            <p id="previewText">Start typing to see how clearly AI understands your prompt. The text sharpens as you add more details.</p>
+          </div>
+        </div>
+
+        <!-- Components Checklist -->
+        <div class="components-card">
+          <h3>What's Specified</h3>
+          <div class="components-list">
+            <div class="component-item" data-key="topic">
+              <div class="component-icon missing">?</div>
+              <span>Subject / Topic</span>
+            </div>
+            <div class="component-item" data-key="audience">
+              <div class="component-icon missing">?</div>
+              <span>Target Audience</span>
+            </div>
+            <div class="component-item" data-key="format">
+              <div class="component-icon missing">?</div>
+              <span>Format / Platform</span>
+            </div>
+            <div class="component-item" data-key="tone">
+              <div class="component-icon missing">?</div>
+              <span>Style / Tone</span>
+            </div>
+            <div class="component-item" data-key="goal">
+              <div class="component-icon missing">?</div>
+              <span>Goal / Outcome</span>
+            </div>
+          </div>
+
+          <div class="suggestions">
+            <div class="suggestion-btn" data-add=" puzzle game">+ type</div>
+            <div class="suggestion-btn" data-add=" for kids">+ audience</div>
+            <div class="suggestion-btn" data-add=", mobile">+ platform</div>
+            <div class="suggestion-btn" data-add=", colorful">+ style</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ALTERNATIVE VISUALIZATIONS ===== -->
+    <div class="alternatives-section">
+      <div class="alternatives-header">
+        <h2>Alternative Visualizations</h2>
+        <div class="mode-selector">
+          <button class="mode-btn active" data-mode="radio">
+            <span class="mode-icon">📻</span> Radio
+          </button>
+          <button class="mode-btn" data-mode="underwater">
+            <span class="mode-icon">🌊</span> Underwater
+          </button>
+          <button class="mode-btn" data-mode="target">
+            <span class="mode-icon">🎯</span> Lock-on
+          </button>
+          <button class="mode-btn" data-mode="explore">
+            <span class="mode-icon">🗺️</span> Explore
+          </button>
+        </div>
+      </div>
+
+      <div class="viz-panel">
+        <p class="viz-description" id="vizDescription">Static fades to clear signal as your intent sharpens</p>
+
+        <!-- Radio Visualization -->
+        <div class="radio-viz active" id="radioViz">
+          <div class="radio-inner">
+            <div class="frequency-row">
+              <div class="signal-bars">
+                <div class="signal-bar" data-level="1"></div>
+                <div class="signal-bar" data-level="2"></div>
+                <div class="signal-bar" data-level="3"></div>
+                <div class="signal-bar" data-level="4"></div>
+                <div class="signal-bar" data-level="5"></div>
+              </div>
+              <div style="text-align: center;">
+                <div class="freq-number" id="freqDisplay">--.-</div>
+                <div class="freq-label">Clarity MHz</div>
+              </div>
+              <div class="signal-bars">
+                <div class="signal-bar" data-level="5"></div>
+                <div class="signal-bar" data-level="4"></div>
+                <div class="signal-bar" data-level="3"></div>
+                <div class="signal-bar" data-level="2"></div>
+                <div class="signal-bar" data-level="1"></div>
+              </div>
+            </div>
+            <div class="waveform-container">
+              <div class="waveform" id="waveform"></div>
+              <div class="static-overlay" id="staticOverlay"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Underwater Visualization -->
+        <div class="underwater-viz" id="underwaterViz">
+          <div class="underwater-inner">
+            <div class="caustics"></div>
+            <div class="depth-display">
+              <div class="depth-number" id="depthDisplay">--</div>
+              <div class="depth-label">Depth (m)</div>
+            </div>
+            <div class="water-level" id="waterLevel"></div>
+          </div>
+        </div>
+
+        <!-- Target Visualization -->
+        <div class="target-viz" id="targetViz">
+          <div class="target-inner">
+            <div class="scanning-text" id="scanningText">SCANNING...</div>
+            <div class="reticle" id="reticle">
+              <div class="reticle-ring outer"></div>
+              <div class="reticle-ring middle"></div>
+              <div class="reticle-ring inner"></div>
+              <div class="reticle-crosshair horizontal"></div>
+              <div class="reticle-crosshair vertical"></div>
+              <div class="reticle-center"></div>
+            </div>
+            <div class="target-confidence" id="targetConfidence">0%</div>
+          </div>
+        </div>
+
+        <!-- Explore Visualization -->
+        <div class="explore-viz" id="exploreViz">
+          <div class="explore-inner">
+            <div class="game-map">
+              <div class="map-region" data-key="topic">
+                <div class="region-terrain"></div>
+                <div class="region-fog"></div>
+                <div class="region-content">
+                  <span class="region-unknown">?</span>
+                  <span class="region-icon">🎮</span>
+                  <span class="region-label">Topic</span>
+                </div>
+              </div>
+              <div class="map-region" data-key="audience">
+                <div class="region-terrain"></div>
+                <div class="region-fog"></div>
+                <div class="region-content">
+                  <span class="region-unknown">?</span>
+                  <span class="region-icon">👥</span>
+                  <span class="region-label">Audience</span>
+                </div>
+              </div>
+              <div class="map-region" data-key="format">
+                <div class="region-terrain"></div>
+                <div class="region-fog"></div>
+                <div class="region-content">
+                  <span class="region-unknown">?</span>
+                  <span class="region-icon">📱</span>
+                  <span class="region-label">Platform</span>
+                </div>
+              </div>
+              <div class="map-region" data-key="tone">
+                <div class="region-terrain"></div>
+                <div class="region-fog"></div>
+                <div class="region-content">
+                  <span class="region-unknown">?</span>
+                  <span class="region-icon">🎨</span>
+                  <span class="region-label">Style</span>
+                </div>
+              </div>
+              <div class="map-region" data-key="goal">
+                <div class="region-terrain"></div>
+                <div class="region-fog"></div>
+                <div class="region-content">
+                  <span class="region-unknown">?</span>
+                  <span class="region-icon">🎯</span>
+                  <span class="region-label">Goal</span>
+                </div>
+              </div>
+            </div>
+            <div class="exploration-bar">
+              <span>Explored:</span>
+              <div class="progress-track">
+                <div class="progress-fill" id="exploreProgress"></div>
+              </div>
+              <span id="explorePercent">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="viz-footer">
+          <div class="status-text" id="statusText">Awaiting input...</div>
+          <div class="audio-toggle" id="audioToggle">
+            <span>🔇</span> Audio
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Elements
+    const input = document.getElementById('promptInput');
+    const blurContent = document.getElementById('blurContent');
+    const previewText = document.getElementById('previewText');
+    const clarityBadge = document.getElementById('clarityBadge');
+    const clarityBadgeHeader = document.getElementById('clarityBadgeHeader');
+    const freqDisplay = document.getElementById('freqDisplay');
+    const depthDisplay = document.getElementById('depthDisplay');
+    const staticOverlay = document.getElementById('staticOverlay');
+    const waterLevel = document.getElementById('waterLevel');
+    const waveform = document.getElementById('waveform');
+    const audioToggle = document.getElementById('audioToggle');
+    const statusText = document.getElementById('statusText');
+    const vizDescription = document.getElementById('vizDescription');
+    const signalBars = document.querySelectorAll('.signal-bar');
+    const componentItems = document.querySelectorAll('.component-item');
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+    const exampleChips = document.querySelectorAll('.example-chip');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    const mapRegions = document.querySelectorAll('.map-region');
+    const reticle = document.getElementById('reticle');
+    const scanningText = document.getElementById('scanningText');
+    const targetConfidence = document.getElementById('targetConfidence');
+    const exploreProgress = document.getElementById('exploreProgress');
+    const explorePercent = document.getElementById('explorePercent');
+
+    let currentMode = 'radio';
+    let currentClarity = 0;
+
+    // Audio
+    let audioCtx = null;
+    let noiseNode = null;
+    let toneNode = null;
+    let noiseGain = null;
+    let toneGain = null;
+    let isAudioEnabled = false;
+    let lowpassFilter = null;
+
+    // Waveform bars
+    const numBars = 40;
+    for (let i = 0; i < numBars; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.height = '4px';
+      waveform.appendChild(bar);
+    }
+    const waveBars = waveform.querySelectorAll('.wave-bar');
+
+    // Clarity indicators
+    const clarityIndicators = {
+      topic: ['game', 'app', 'website', 'tool', 'platform', 'puzzle', 'rpg', 'shooter', 'platformer', 'strategy'],
+      audience: ['for', 'targeting', 'kids', 'adults', 'casual', 'hardcore', 'players', 'users', 'beginners'],
+      format: ['mobile', 'web', 'desktop', '2d', '3d', 'vr', 'ar', 'multiplayer', 'single', 'online'],
+      tone: ['colorful', 'dark', 'minimal', 'fun', 'serious', 'retro', 'modern', 'realistic', 'cartoon', 'style'],
+      goal: ['goal', 'addictive', 'educational', 'relaxing', 'competitive', 'social', 'monetize', 'sessions', 'engagement']
+    };
+
+    const modeDescriptions = {
+      radio: 'Static fades to clear signal as your intent sharpens',
+      underwater: 'Rise from the depths as your intent becomes clear',
+      target: 'Searching... lock on as your intent becomes precise',
+      explore: 'Discover the map - reveal regions as you add details'
+    };
+
+    // Mode switching
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+
+        document.querySelectorAll('.radio-viz, .underwater-viz, .target-viz, .explore-viz').forEach(v => v.classList.remove('active'));
+        document.getElementById(currentMode + 'Viz').classList.add('active');
+        vizDescription.textContent = modeDescriptions[currentMode];
+
+        updateUI(input.value);
+      });
+    });
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      const bufferSize = 2 * audioCtx.sampleRate;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      noiseNode = audioCtx.createBufferSource();
+      noiseNode.buffer = noiseBuffer;
+      noiseNode.loop = true;
+
+      lowpassFilter = audioCtx.createBiquadFilter();
+      lowpassFilter.type = 'lowpass';
+      lowpassFilter.frequency.value = 400;
+
+      noiseGain = audioCtx.createGain();
+      noiseGain.gain.value = 0.1;
+
+      toneNode = audioCtx.createOscillator();
+      toneNode.type = 'sine';
+      toneNode.frequency.value = 440;
+
+      toneGain = audioCtx.createGain();
+      toneGain.gain.value = 0;
+
+      noiseNode.connect(lowpassFilter);
+      lowpassFilter.connect(noiseGain);
+      noiseGain.connect(audioCtx.destination);
+
+      toneNode.connect(toneGain);
+      toneGain.connect(audioCtx.destination);
+
+      noiseNode.start();
+      toneNode.start();
+    }
+
+    function updateAudio(clarity) {
+      if (!audioCtx || !isAudioEnabled) return;
+      const t = audioCtx.currentTime;
+
+      const noiseLevel = Math.max(0, 0.1 * (1 - clarity / 100));
+      const toneLevel = Math.min(0.08, 0.08 * (clarity / 100));
+      const filterFreq = 200 + (clarity * 40);
+
+      lowpassFilter.frequency.setTargetAtTime(filterFreq, t, 0.1);
+      noiseGain.gain.setTargetAtTime(noiseLevel, t, 0.1);
+      toneGain.gain.setTargetAtTime(toneLevel, t, 0.1);
+      toneNode.frequency.setTargetAtTime(300 + clarity * 2, t, 0.1);
+    }
+
+    audioToggle.addEventListener('click', () => {
+      if (!isAudioEnabled) {
+        initAudio();
+        isAudioEnabled = true;
+        audioToggle.classList.add('active');
+        audioToggle.innerHTML = '<span>🔊</span> Audio';
+        updateAudio(currentClarity);
+      } else {
+        isAudioEnabled = false;
+        audioToggle.classList.remove('active');
+        audioToggle.innerHTML = '<span>🔇</span> Audio';
+        if (noiseGain) noiseGain.gain.value = 0;
+        if (toneGain) toneGain.gain.value = 0;
+      }
+    });
+
+    function analyzePrompt(text) {
+      const lower = text.toLowerCase();
+      const results = { topic: false, audience: false, format: false, tone: false, goal: false };
+      if (text.length < 5) return results;
+
+      for (const [key, keywords] of Object.entries(clarityIndicators)) {
+        results[key] = keywords.some(kw => lower.includes(kw));
+      }
+      return results;
+    }
+
+    function animateWaveform(clarity) {
+      waveBars.forEach((bar, i) => {
+        const isStatic = clarity < 30;
+        const height = isStatic
+          ? Math.random() * 35 + 5
+          : Math.sin((Date.now() / 200) + i * 0.3) * (12 + clarity * 0.15) + 18;
+        bar.style.height = `${height}px`;
+      });
+    }
+
+    function startWaveformAnimation() {
+      function animate() {
+        if (currentMode === 'radio') {
+          animateWaveform(currentClarity);
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+    startWaveformAnimation();
+
+    function updateUI(text) {
+      const analysis = analyzePrompt(text);
+      const resolved = Object.values(analysis).filter(Boolean).length;
+      const total = Object.keys(analysis).length;
+      const clarity = Math.round((resolved / total) * 100);
+      currentClarity = clarity;
+
+      // PRIMARY: Blur preview
+      const blur = Math.max(0, 5 - (clarity / 100) * 5);
+      blurContent.style.filter = `blur(${blur}px)`;
+
+      clarityBadge.textContent = `${clarity}% clarity`;
+      clarityBadge.classList.toggle('high', clarity >= 80);
+      clarityBadgeHeader.textContent = `${clarity}% clarity`;
+      clarityBadgeHeader.classList.toggle('high', clarity >= 80);
+
+      if (text.length === 0) {
+        previewText.textContent = 'Start typing to see how clearly AI understands your prompt. The text sharpens as you add more details.';
+      } else if (clarity < 30) {
+        previewText.textContent = 'Very unclear... I can barely understand what you want. The image is blurry because your intent is vague.';
+      } else if (clarity < 60) {
+        previewText.textContent = 'Getting clearer... I see the general direction. Add more details to sharpen the picture.';
+      } else if (clarity < 90) {
+        previewText.textContent = 'Good clarity! I understand most of what you want. A few more details would perfect it.';
+      } else {
+        previewText.textContent = 'Crystal clear! I know exactly what you need. Ready to deliver precise results.';
+      }
+
+      // Components checklist
+      componentItems.forEach(item => {
+        const key = item.dataset.key;
+        const isResolved = analysis[key];
+        item.classList.toggle('resolved', isResolved);
+        const icon = item.querySelector('.component-icon');
+        icon.className = `component-icon ${isResolved ? 'found' : 'missing'}`;
+        icon.textContent = isResolved ? '✓' : '?';
+      });
+
+      // Radio viz
+      const freq = (clarity / 10).toFixed(1);
+      freqDisplay.textContent = text.length === 0 ? '--.-' : freq;
+
+      const activeBars = Math.ceil((clarity / 100) * 5);
+      signalBars.forEach(bar => {
+        const level = parseInt(bar.dataset.level);
+        bar.classList.toggle('active', level <= activeBars);
+      });
+
+      staticOverlay.style.opacity = 1 - (clarity / 100);
+
+      // Underwater viz
+      const depth = Math.max(0, 100 - clarity);
+      depthDisplay.textContent = text.length === 0 ? '--' : depth;
+      waterLevel.style.height = `${100 - clarity}%`;
+
+      // Target viz
+      const isLocked = clarity >= 80;
+      reticle.classList.toggle('searching', clarity < 80);
+      scanningText.textContent = isLocked ? 'TARGET LOCKED' : 'SCANNING...';
+      scanningText.classList.toggle('locked', isLocked);
+      targetConfidence.textContent = `${clarity}%`;
+      targetConfidence.classList.toggle('locked', isLocked);
+
+      reticle.querySelectorAll('.reticle-ring').forEach(ring => {
+        ring.classList.toggle('locked', isLocked);
+      });
+      reticle.querySelectorAll('.reticle-crosshair').forEach(ch => {
+        ch.classList.toggle('locked', isLocked);
+      });
+      reticle.querySelector('.reticle-center').classList.toggle('locked', isLocked);
+
+      // Explore viz
+      mapRegions.forEach(region => {
+        const key = region.dataset.key;
+        region.classList.toggle('revealed', analysis[key]);
+      });
+
+      exploreProgress.style.width = `${clarity}%`;
+      explorePercent.textContent = `${clarity}%`;
+
+      // Status text
+      const statusMessages = {
+        radio: { 0: 'Awaiting signal...', 30: '▓▓▓ STATIC ▓▓▓', 60: '▒▒ Tuning... ▒▒', 90: '░ Almost there... ░', 100: '✓ LOCKED ✓' },
+        underwater: { 0: 'Submerged...', 30: '🫧 Deep...', 60: '🫧 Rising...', 90: '💨 Surface near...', 100: '☀️ SURFACED!' },
+        target: { 0: 'No target...', 30: '◎ Searching...', 60: '◎ Acquiring...', 90: '⊕ Locking...', 100: '⊕ LOCKED!' },
+        explore: { 0: 'Terra incognita...', 30: '🗺️ Exploring...', 60: '🗺️ Mapping...', 90: '🗺️ Almost done...', 100: '✓ MAPPED!' }
+      };
+
+      let statusKey = text.length === 0 ? 0 : clarity < 30 ? 30 : clarity < 60 ? 60 : clarity < 90 ? 90 : 100;
+      statusText.textContent = statusMessages[currentMode][statusKey];
+      statusText.className = `status-text ${clarity >= 80 ? 'locked' : clarity >= 40 ? 'clear' : ''}`;
+
+      updateAudio(clarity);
+    }
+
+    input.addEventListener('input', (e) => updateUI(e.target.value));
+
+    suggestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        input.value += btn.dataset.add;
+        input.focus();
+        updateUI(input.value);
+      });
+    });
+
+    exampleChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        input.value = chip.dataset.prompt;
+        input.focus();
+        updateUI(input.value);
+      });
+    });
+
+    updateUI('');
+  </script>
+</body>
+</html>
