@@ -716,68 +716,142 @@
         linear-gradient(135deg, #1a2820 0%, #12201a 50%, #0f1a15 100%);
       border-radius: 8px;
       overflow: hidden;
-      border: 2px solid #3a4a3a;
+      border: 2px solid #5a4a3a;
       box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
     }
 
     .map-region {
       position: absolute;
-      border-radius: 4px;
+      border-radius: 6px;
       overflow: hidden;
       transition: all 0.6s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      border: 1px solid rgba(0,0,0,0.3);
     }
 
-    /* TOPIC - Forest terrain (green with trees) */
+    /* TOPIC - Dense Forest with tree patterns */
     .map-region[data-key="topic"] {
       top: 8px; left: 8px; width: 38%; height: 48%;
-      --terrain:
-        radial-gradient(circle at 20% 30%, #3a6a4a 0%, transparent 20%),
-        radial-gradient(circle at 60% 70%, #2a5a3a 0%, transparent 25%),
-        radial-gradient(circle at 80% 20%, #4a7a5a 0%, transparent 15%),
-        radial-gradient(circle at 40% 50%, #3a5a3a 0%, transparent 30%),
+    }
+    .map-region[data-key="topic"] .region-terrain {
+      background:
+        /* Tree canopy pattern */
+        radial-gradient(ellipse 8px 6px at 15% 25%, #2d5a3d 60%, transparent 70%),
+        radial-gradient(ellipse 10px 8px at 35% 35%, #3d6a4d 60%, transparent 70%),
+        radial-gradient(ellipse 7px 5px at 55% 20%, #2d5a3d 60%, transparent 70%),
+        radial-gradient(ellipse 9px 7px at 75% 40%, #4d7a5d 60%, transparent 70%),
+        radial-gradient(ellipse 8px 6px at 25% 55%, #3d6a4d 60%, transparent 70%),
+        radial-gradient(ellipse 11px 9px at 45% 65%, #2d5a3d 60%, transparent 70%),
+        radial-gradient(ellipse 8px 6px at 65% 75%, #4d7a5d 60%, transparent 70%),
+        radial-gradient(ellipse 9px 7px at 85% 60%, #3d6a4d 60%, transparent 70%),
+        radial-gradient(ellipse 7px 5px at 10% 80%, #2d5a3d 60%, transparent 70%),
+        radial-gradient(ellipse 10px 8px at 50% 85%, #3d6a4d 60%, transparent 70%),
         linear-gradient(160deg, #2a5a3a 0%, #1a4a2a 50%, #1a3a1a 100%);
     }
 
-    /* AUDIENCE - Desert/plains terrain (tan/brown) */
+    /* AUDIENCE - Sandy Desert with dunes */
     .map-region[data-key="audience"] {
       top: 8px; right: 8px; width: 32%; height: 42%;
-      --terrain:
-        radial-gradient(circle at 30% 40%, #6a5a4a 0%, transparent 25%),
-        radial-gradient(circle at 70% 60%, #5a4a3a 0%, transparent 20%),
-        linear-gradient(145deg, #5a4a3a 0%, #4a3a2a 50%, #3a2a1a 100%);
+    }
+    .map-region[data-key="audience"] .region-terrain {
+      background:
+        /* Sand dune waves */
+        repeating-linear-gradient(175deg,
+          transparent 0px,
+          transparent 8px,
+          rgba(90, 75, 55, 0.4) 8px,
+          rgba(90, 75, 55, 0.4) 10px,
+          transparent 10px,
+          transparent 18px
+        ),
+        repeating-linear-gradient(185deg,
+          transparent 0px,
+          transparent 12px,
+          rgba(80, 65, 45, 0.3) 12px,
+          rgba(80, 65, 45, 0.3) 14px,
+          transparent 14px,
+          transparent 26px
+        ),
+        radial-gradient(ellipse at 30% 30%, #8a7a5a 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 70%, #7a6a4a 0%, transparent 40%),
+        linear-gradient(145deg, #6a5a4a 0%, #5a4a3a 50%, #4a3a2a 100%);
     }
 
-    /* FORMAT - Water/ocean terrain (blue) */
+    /* FORMAT - Ocean with waves */
     .map-region[data-key="format"] {
       bottom: 8px; left: 8px; width: 30%; height: 44%;
-      --terrain:
-        radial-gradient(circle at 50% 30%, #4a6a8a 0%, transparent 30%),
-        radial-gradient(circle at 30% 70%, #3a5a7a 0%, transparent 25%),
-        linear-gradient(170deg, #3a5a7a 0%, #2a4a6a 50%, #1a3a5a 100%);
+    }
+    .map-region[data-key="format"] .region-terrain {
+      background:
+        /* Wave patterns */
+        repeating-linear-gradient(190deg,
+          transparent 0px,
+          transparent 6px,
+          rgba(60, 90, 120, 0.5) 6px,
+          rgba(60, 90, 120, 0.5) 8px,
+          transparent 8px,
+          transparent 14px
+        ),
+        repeating-linear-gradient(170deg,
+          transparent 0px,
+          transparent 10px,
+          rgba(50, 80, 110, 0.4) 10px,
+          rgba(50, 80, 110, 0.4) 12px,
+          transparent 12px,
+          transparent 22px
+        ),
+        radial-gradient(ellipse at 30% 40%, #5a8aaa 0%, transparent 40%),
+        radial-gradient(ellipse at 70% 60%, #4a7a9a 0%, transparent 35%),
+        linear-gradient(170deg, #4a7a9a 0%, #3a6a8a 50%, #2a5a7a 100%);
     }
 
-    /* TONE - Mountains terrain (gray/purple) */
+    /* TONE - Rocky Mountains with peaks */
     .map-region[data-key="tone"] {
       bottom: 8px; left: 36%; width: 28%; height: 40%;
-      --terrain:
-        linear-gradient(180deg, #7a6a7a 0%, #5a4a5a 30%, #4a3a4a 100%),
-        radial-gradient(ellipse at 50% 20%, #8a7a8a 0%, transparent 40%);
+    }
+    .map-region[data-key="tone"] .region-terrain {
+      background:
+        /* Mountain peaks */
+        linear-gradient(135deg, transparent 40%, #9a8a9a 40%, #9a8a9a 42%, transparent 42%),
+        linear-gradient(45deg, transparent 55%, #8a7a8a 55%, #8a7a8a 58%, transparent 58%),
+        linear-gradient(120deg, transparent 30%, #7a6a7a 30%, #7a6a7a 35%, transparent 35%),
+        linear-gradient(60deg, transparent 65%, #8a7a8a 65%, #8a7a8a 70%, transparent 70%),
+        radial-gradient(ellipse at 25% 70%, #6a5a6a 0%, transparent 40%),
+        radial-gradient(ellipse at 75% 80%, #5a4a5a 0%, transparent 35%),
+        linear-gradient(180deg, #8a7a8a 0%, #6a5a6a 40%, #4a3a4a 100%);
     }
 
-    /* GOAL - Golden plains (yellow/gold) */
+    /* GOAL - Golden Grasslands with texture */
     .map-region[data-key="goal"] {
       bottom: 8px; right: 8px; width: 30%; height: 48%;
-      --terrain:
-        radial-gradient(circle at 40% 60%, #7a6a3a 0%, transparent 30%),
-        radial-gradient(circle at 70% 30%, #6a5a2a 0%, transparent 25%),
-        linear-gradient(150deg, #6a5a3a 0%, #5a4a2a 50%, #4a3a1a 100%);
+    }
+    .map-region[data-key="goal"] .region-terrain {
+      background:
+        /* Grass/wheat field pattern */
+        repeating-linear-gradient(95deg,
+          transparent 0px,
+          transparent 3px,
+          rgba(100, 90, 50, 0.3) 3px,
+          rgba(100, 90, 50, 0.3) 4px,
+          transparent 4px,
+          transparent 7px
+        ),
+        repeating-linear-gradient(85deg,
+          transparent 0px,
+          transparent 5px,
+          rgba(90, 80, 40, 0.25) 5px,
+          rgba(90, 80, 40, 0.25) 6px,
+          transparent 6px,
+          transparent 11px
+        ),
+        radial-gradient(ellipse at 40% 30%, #9a8a4a 0%, transparent 45%),
+        radial-gradient(ellipse at 60% 70%, #8a7a3a 0%, transparent 40%),
+        linear-gradient(150deg, #7a6a3a 0%, #6a5a2a 50%, #5a4a1a 100%);
     }
 
     .region-terrain {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--terrain);
       z-index: 1;
     }
 
@@ -786,7 +860,7 @@
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       background:
-        repeating-linear-gradient(45deg, transparent 0px, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+        repeating-linear-gradient(45deg, transparent 0px, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
       pointer-events: none;
     }
 
