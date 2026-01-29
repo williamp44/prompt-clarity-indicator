@@ -794,11 +794,13 @@
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       background:
-        radial-gradient(ellipse at 30% 30%, rgba(80, 80, 90, 0.9) 0%, transparent 70%),
-        radial-gradient(ellipse at 70% 60%, rgba(70, 70, 80, 0.9) 0%, transparent 70%),
-        linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+        radial-gradient(ellipse at 20% 20%, rgba(60, 60, 70, 0.7) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(50, 50, 60, 0.7) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(40, 40, 50, 0.8) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(50, 50, 60, 0.85) 0%, rgba(40, 40, 50, 0.9) 100%);
       transition: opacity 0.8s ease;
       z-index: 2;
+      backdrop-filter: blur(2px);
     }
 
     .map-region.revealed .region-fog {
